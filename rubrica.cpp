@@ -1,7 +1,283 @@
 #include "console+vts.hpp"
 #include "rubrica.hpp"
 
+//verificare se il numero è un numero!!!
+//anche la mail
+
+/*
+
+allora.
+
+accaonto a ogni i-esimo elemento della opzionts aggiungi il valoer attuale di rickyguala.
+fix colori
+stiling
+*/
+void modifica(CONTATTO r[MAX_SIZE], int &contacts, int currentContact) {
+	
+	system("cls");
+	
+	// Menù.
+	string options[] = {
+		"---------------",
+		"Nome           ",
+		"Cognome        ",
+		"Data di Nascita",
+		"Numero mobile  ",
+		"Numero Fisso   ",
+		"Residenza      ",
+		"Indirizzo      ",
+		"E-Mail         ",
+		"Note           ",
+		"---------------",
+		"Torna alla Home",
+		"---------------",
+	};
+
+	CONTATTO rickyguala = r[currentContact];
+	int campoMod = 1;
+	
+	int optionsLength= 13;
+	bool doLoop = true;
+	
+	do {
+								
+		for (int i = 0; i < 13; i++) {
+			setCursorPosition(WDSX, WDSY + i);
+
+			if (i == campoMod)		
+				cout << bC(1, 150, 215) << fC(255);
+			else
+				cout << bC(12) << fC(240);
+			
+			cout << options[i] << endl;	
+			cout << bC(12)<< fC(240);
+		}
+		
+		// nascondo il cursore.
+		cout<<"\x1b[?25l";
+			
+		// prendo l'input
+		char action = _getch();
+
+		switch (action) {
+			
+			case 'W':
+			case 'w':
+				
+				// Oltre il limite. Imposto al minimo.
+				if (campoMod - 1 < 0)
+					campoMod = campoMod - 1;
+				// Opzione superiore.
+				else
+					campoMod--;
+	
+				// Seleziono il prossimo elemento abilitato.
+				while (options[campoMod][0] == '-')
+				{
+					// Oltre il limite. Imposto al minimo.
+					if (campoMod - 1 < 0)
+						campoMod = optionsLength - 1;
+					// Opzione superiore.
+					else
+						campoMod--;
+				}
+				
+				break;
+				
+			case 'S':
+			case 's':
+				
+				// Oltre il limite. Imposto al massimo.
+				if (campoMod + 1 > optionsLength - 1)
+					campoMod = 0;
+				// Opzione inferiore.
+				else
+					campoMod++;
+	
+				// Seleziono il prossimo elemento abilitato.
+				while (options[campoMod][0] == '-')
+				{
+					// Oltre il limite. Imposto al massimo.
+					if (campoMod + 1 > optionsLength - 1)
+						campoMod = 0;
+					// Opzione inferiore.
+					else
+						campoMod++;
+				}
+				
+				break;
+			
+			case 'X':
+			case 'x':
+				
+				system("cls");
+							
+				setCursorPosition(WDSX, WDSY);
+				cout << options[campoMod] << endl;
+
+				switch (campoMod) {
+			
+					case 1: //nome
+						
+						do {
+						
+							getline (cin, rickyguala.nome, '\n');	
+						} while (rickyguala.nome.size() == 0);
+						//il campo è obbligatorio quindi si deve per forza scrivere qualcosa
+						break;
+					
+					case 2: //cognome
+						
+						do {
+						
+							getline (cin, rickyguala.cognome, '\n');	
+						} while (rickyguala.cognome.size() == 0);
+						break;
+						
+					case 3: //data
+						
+						break;
+					
+					case 4: //numoro mobile
+			
+						getline (cin, rickyguala.numeroMobile, '\n');	
+			
+						break;
+					
+					case 5: //numoro fisso
+			
+						getline (cin, rickyguala.numeroFisso, '\n');	
+			
+						break;
+					
+					case 6: //residenza
+					
+						getline (cin, rickyguala.residenza, '\n');	
+			
+						break;
+						
+					case 7: //indirizzo
+						
+						getline (cin, rickyguala.indirizzo, '\n');	
+			
+						break;
+						
+					case 8: //mail
+						
+						getline (cin, rickyguala.email, '\n');	
+			
+						break;
+						
+					case 9: //note
+					
+						do {
+						
+							getline (cin, rickyguala.note, '\n');
+						} while (rickyguala.note.size() > 69);
+			
+						break;
+						
+					case 11: //esci
+					
+						doLoop = false;
+					
+						break; 
+				}
+		
+				system("cls");
+
+				break;				
+		}		
+	} while (doLoop);
+	
+	//mostra le differenze tra il contatto precedente e quello modificato
+	cout << r[currentContact].nome << "---" << rickyguala.nome << endl;
+	cout << r[currentContact].cognome << "---" << rickyguala.cognome << endl;
+	//cout << r[currentContact].data << "---" << rickyguala.data << endl;
+	cout << r[currentContact].numeroMobile << "---" << rickyguala.numeroMobile << endl;
+	cout << r[currentContact].numeroFisso << "---" << rickyguala.numeroFisso << endl;
+	cout << r[currentContact].residenza << "---" << rickyguala.residenza << endl;
+	cout << r[currentContact].indirizzo << "---" << rickyguala.indirizzo << endl;
+	cout << r[currentContact].email << "---" << rickyguala.email << endl;
+	cout << r[currentContact].note << "---" << rickyguala.note << endl;
+	
+	//verifica se il ocntatto è stato effettivamente modificato per chiedere la conferma se è ancora uguale non la chiede
+	if (!uguali (r[currentContact], rickyguala)) {
+	
+		cout << "voui modificare il contatto? " << endl;
+		char bho = _getch();
+		
+		if (bho == 'Y' || bho == 'y') {
+			
+			r[currentContact] = rickyguala;
+			salva(r, contacts);
+			
+		}/* .nome */
+	}
+	
+	cout << "\x1b[?25l";
+	system("cls");
+}
+
+bool uguali (CONTATTO r1, CONTATTO r2) {
+	
+	if (r1.nome != r2.nome) return false;
+	if (r1.cognome != r2.cognome) return false;
+	//if (r1.data != r2.data) return false;
+	if (r1.residenza != r2.residenza) return false;
+	if (r1.indirizzo != r2.indirizzo) return false;
+	if (r1.numeroFisso != r2.numeroFisso) return false;
+	if (r1.note != r2.note) return false;
+	if (r1.numeroMobile != r2.numeroMobile) return false;
+	if (r1.email != r2.email) return false;
+	
+	return true;
+}
+
+
+/*
+disabilito se c'è mc' 1 o 0 contatti
+se c'è solo un contatto corrispondete non faccio fare movimenti (stack overflow)
+far vedere iu filtri attivi da qualche parte
+
+fare analisi di mercato per l'inserimento dei filtri dA QUALCHE PARTE
+
+1. SCALARE TUTTO NO
+2. (SI) ACCOPPARE LE DESCRIZIONI
+*/
+void filtra (string &nome, string &cognome) {
+	
+	string filtro2;
+	int filtro;
+	cout << "che filro si vuole applicare (nome, cognome, entrambi): " << endl;
+	getline (cin, filtro2, '\n');
+	
+	if (filtro2 == "nome") filtro = 1;
+	if (filtro2 == "cognome") filtro = 2;
+	if (filtro2 == "entrambi") filtro = 3;
+	
+	switch (filtro) {
+		
+		case 1: //filtra per nome
+			
+			getline (cin, nome, '\n');
+			break;
+		
+		case 2: //filtra per cognome
+			
+			getline (cin, cognome, '\n');
+			break;
+			
+		case 3: //filtra per enrambi
+		
+			getline (cin, nome, '\n');
+			getline (cin, cognome, '\n');
+			break;
+	}
+}
+
 bool carica(CONTATTO r[MAX_SIZE], int &contacts) {
+	
 	// Resetto il numero di contatti.
 	contacts = 0;
 	
@@ -47,8 +323,8 @@ bool carica(CONTATTO r[MAX_SIZE], int &contacts) {
 			// prendo il campo
 			getline(inLine, word, '§');
 			
-			switch (i)
-			{
+			switch (i) {
+				
 				// Nome
 				case 0: t.nome = word; break;
 				// Cognome
@@ -68,9 +344,9 @@ bool carica(CONTATTO r[MAX_SIZE], int &contacts) {
 					
 					break;
 				// Numero mobile
-				case 3: t.numeroMobile = word; break;
+				case 3: t.numeroMobile = word; break;				
 				// Numero Fisso.
-				case 4: t.numeroFisso = word; break;
+				case 4: t.numeroFisso = word; break;				
 				// Residenza.
 				case 5: t.residenza = word; break;
 				// Indirizzo.

@@ -49,12 +49,32 @@ int main()
 	return loop();
 }
 
+/*
+
+
+
+
+
+
+dashboard fix separatore contaitti corti poroca9iuds
+
+
+
+
+
+*/
+
+
+
+
 int loop()
 {
 	// Variabile di Loop.
 	bool doLoop = true;
 	// Lunghezza Menù.
 	int optionsLength = 18;
+	
+	string nome = "", cognome = "";
 	
 	// Menù.
 	string options[] = {
@@ -142,6 +162,14 @@ int loop()
 				// Un solo contatto.
 				else if (contacts == 1)
 				{
+					// abilito tutto.
+					for (int o = 2; o < 10; o++)
+						// L'elemento non è un separatore
+						if (options[o][0] != '-')
+							optionsState[o] = true;
+							
+					optionsState[4] = false;
+							
 					// Non server scorrere.
 					for (int o = 6; o < 10; o++)
 						optionsState[o] = false;
@@ -203,8 +231,17 @@ int loop()
 				}
 				else
 				{
-					currentContact = currentContact - 1 >= 0 ? currentContact - 1 : contacts - 1;
+					if (nome != "") {
+						while (rubrica[currentContact - 1].nome != nome) {
+							
+							currentContact = currentContact - 1 >= 0 ? currentContact - 1 : contacts - 1;
+						}
+					}else {
+						
+						currentContact = currentContact - 1 >= 0 ? currentContact - 1 : contacts - 1;
+					}
 					dashboard(mode, currentContact, contacts);
+					
 				}
 				
 				break;
@@ -301,13 +338,15 @@ int loop()
 						
 						// Comando "Modifica Contatto".
 					case 3:
-						//modifica(rubrica, contacts);
+						//modifica(rubrica, contacts, currentContact);
+						modifica (rubrica, contacts, currentContact);
 						dashboard(mode, currentContact, contacts);
 						break;
 						
 						// Comando "Filtra Contatto".
 					case 4:
 						
+						filtra (nome,  cognome);
 						break;
 						
 						/*
@@ -949,7 +988,7 @@ void toolTip(int currentOption)
 		"(T) Seleziona il primo contatto",
 		"(B) Seleziona il l'ultimo contatto",
 		"",
-		"Alterna la modalità visiva della dashboard",
+		"Alterna la modalita' visiva della dashboard",
 		"",
 		"Ricarica la rubrica dal sorgente",
 		"(5) Effettua un aggiornamento grafica TOTALE",
