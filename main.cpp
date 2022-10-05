@@ -226,24 +226,14 @@ int loop()
 						//currentContact = currentContact - 1 >= 0 ? currentContact - 1 : contacts - 8;
 						currentContact = currentContact - 1 >= 0 ? currentContact - 1 : contacts - 1;
 					}
-					
-					dashboard(mode, currentContact, contacts);
 				}
 				else
 				{
-					if (nome != "") {
-						while (rubrica[currentContact - 1].nome != nome) {
-							
-							currentContact = currentContact - 1 >= 0 ? currentContact - 1 : contacts - 1;
-						}
-					}else {
-						
-						currentContact = currentContact - 1 >= 0 ? currentContact - 1 : contacts - 1;
-					}
-					dashboard(mode, currentContact, contacts);
-					
+					currentContact = currentContact - 1 >= 0 ? currentContact - 1 : contacts - 1;
 				}
 				
+				dashboard(mode, currentContact, contacts);			
+
 				break;
 				
 				// Comando "Giù".
@@ -264,15 +254,13 @@ int loop()
 						//currentContact = currentContact + 1 <= contacts - 8 ? currentContact + 1 : 0;
 						currentContact = currentContact + 1 <= contacts - 1 ? currentContact + 1 : 0;
 					}
-					
-					dashboard(mode, currentContact, contacts);
 				}
 				else
 				{
 					currentContact = currentContact + 1 <= contacts - 1 ? currentContact + 1 : 0;
-					dashboard(mode, currentContact, contacts);
 				}
 				
+				dashboard(mode, currentContact, contacts);
 				break;
 				
 				// Comando "In Cima".
@@ -338,7 +326,6 @@ int loop()
 						
 						// Comando "Modifica Contatto".
 					case 3:
-						//modifica(rubrica, contacts, currentContact);
 						modifica (rubrica, contacts, currentContact);
 						dashboard(mode, currentContact, contacts);
 						break;

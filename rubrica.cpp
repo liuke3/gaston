@@ -3,19 +3,10 @@
 
 //verificare se il numero è un numero!!!
 //anche la mail
-
-/*
-
-allora.
-
-accaonto a ogni i-esimo elemento della opzionts aggiungi il valoer attuale di rickyguala.
-fix colori
-stiling
-*/
 void modifica(CONTATTO r[MAX_SIZE], int &contacts, int currentContact) {
 	
 	system("cls");
-	
+
 	// Menù.
 	string options[] = {
 		"---------------",
@@ -29,28 +20,100 @@ void modifica(CONTATTO r[MAX_SIZE], int &contacts, int currentContact) {
 		"E-Mail         ",
 		"Note           ",
 		"---------------",
-		"Torna alla Home",
+		"TORNA ALLA HOME",
 		"---------------",
 	};
-
-	CONTATTO rickyguala = r[currentContact];
-	int campoMod = 1;
 	
+	//elenco di modifica
+	string modifica[] = { 
+		"NOME: ",
+		"COGNOME: ",
+		"DATA DI NASCITA: ",
+		"NUMERO MOBILE: ",
+		"NUMERO FISSO: ",
+		"RESIDENZA: ",
+		"INDIRIZZO: ",
+		"E-MAIL: ",
+		"NOTE: ",
+	};
+
+	// contatto in modifica
+	CONTATTO rickyguala = r[currentContact];
+	// opzione selezionata
+	int campoMod = 1;
+	// lunghezza menu
 	int optionsLength= 13;
+	// loop menu
 	bool doLoop = true;
 	
 	do {
-								
-		for (int i = 0; i < 13; i++) {
-			setCursorPosition(WDSX, WDSY + i);
-
-			if (i == campoMod)		
-				cout << bC(1, 150, 215) << fC(255);
-			else
-				cout << bC(12) << fC(240);
 			
-			cout << options[i] << endl;	
-			cout << bC(12)<< fC(240);
+		cout << "\x1b[?25l";
+		
+		setCursorPosition(0, 0);
+		cout << endl;
+		cout << fC(210, 150, 250) << " Modifica di un Contatto" << endl;
+		cout << fC(100) << " -----------------------" << endl;
+		cout << endl;
+		
+		for (int i = 0; i < optionsLength; i++) {
+			
+			setCursorPosition(WDSX, WDSY + i + 2);
+
+			// Opzione Selezionata.
+			if (i == campoMod) {
+				
+				// Opzione "Esci".
+				if (options[i][0] == 'T')
+					cout << fC(240) << bC(255, 0, 0);
+				// Separatore.
+				else if (options[i][0] == '-')
+					cout << fC(opzioneDisabilitata);
+				// Altre opzioni.
+				else
+					cout << bC(opzioneCorrente);
+			}
+			// Altro.
+			else {
+				
+				// Opzione "Esci".
+				if (options[i][0] == 'T')
+					cout << fC(255, 0, 0);
+				// Separatore.
+				else if (options[i][0] == '-')
+					cout << fC(opzioneDisabilitata);
+				// Altre Opzioni.
+				else
+					cout << fC(opzioneAbilitata);
+			}
+
+			cout << options[i] << bC(12) << fC(35, 165, 100) << "   ";
+			
+			string valore;
+			
+			//mostra i valori del contatto che si sta modificando
+			switch (i) {
+				
+				case 1: valore = rickyguala.nome; break;
+				case 2: valore = rickyguala.cognome; break;
+				// data
+				case 4: valore = rickyguala.numeroMobile; break;
+				case 5: valore = rickyguala.numeroFisso; break;
+				case 6: valore = rickyguala.residenza; break;
+				case 7: valore = rickyguala.indirizzo; break;
+				case 8: valore = rickyguala.email; break;
+				case 9: valore = rickyguala.note; break;
+			}
+			
+			//il campo è vuoto
+			if (valore=="#IS_$_NULL!") {
+				cout << "";	
+			}
+			else {
+				cout << valore;
+			}
+			
+			cout << bC(12)<< fC(240) << endl;
 		}
 		
 		// nascondo il cursore.
@@ -111,10 +174,16 @@ void modifica(CONTATTO r[MAX_SIZE], int &contacts, int currentContact) {
 			case 'x':
 				
 				system("cls");
-							
-				setCursorPosition(WDSX, WDSY);
-				cout << options[campoMod] << endl;
-
+				cout << "\x1b[?25h";
+					
+				cout << endl;
+				cout << fC(210, 150, 250) << " Modifica di un Contatto" << endl;
+				cout << fC(100) << " -----------------------" << endl;
+				cout << endl;
+				
+				//scrivo il campo che si sta modifcando
+				cout << " " << fC(240) << modifica[campoMod - 1] << fC(35, 165, 100);
+				
 				switch (campoMod) {
 			
 					case 1: //nome
@@ -183,28 +252,22 @@ void modifica(CONTATTO r[MAX_SIZE], int &contacts, int currentContact) {
 					
 						break; 
 				}
-		
-				system("cls");
+				
+				//pulisco solo se campomod è 11 (esci)
+				if (campoMod != 11) {
+					system("cls");
+				}
 
-				break;				
-		}		
+				break;
+		}
+		
 	} while (doLoop);
-	
-	//mostra le differenze tra il contatto precedente e quello modificato
-	cout << r[currentContact].nome << "---" << rickyguala.nome << endl;
-	cout << r[currentContact].cognome << "---" << rickyguala.cognome << endl;
-	//cout << r[currentContact].data << "---" << rickyguala.data << endl;
-	cout << r[currentContact].numeroMobile << "---" << rickyguala.numeroMobile << endl;
-	cout << r[currentContact].numeroFisso << "---" << rickyguala.numeroFisso << endl;
-	cout << r[currentContact].residenza << "---" << rickyguala.residenza << endl;
-	cout << r[currentContact].indirizzo << "---" << rickyguala.indirizzo << endl;
-	cout << r[currentContact].email << "---" << rickyguala.email << endl;
-	cout << r[currentContact].note << "---" << rickyguala.note << endl;
-	
+
 	//verifica se il ocntatto è stato effettivamente modificato per chiedere la conferma se è ancora uguale non la chiede
 	if (!uguali (r[currentContact], rickyguala)) {
 	
-		cout << "voui modificare il contatto? " << endl;
+		setCursorPosition(0, 4);
+		cout << fC(200) << " Modificare il Contatto? [" << fC(30, 165, 100) << "Y" << fC(200) << "/" << fC(255, 90, 70) << "N" << fC(200) << "]";
 		char bho = _getch();
 		
 		if (bho == 'Y' || bho == 'y') {
@@ -516,7 +579,8 @@ bool aggiungi(CONTATTO r[MAX_SIZE], int &contacts)
 	cout << endl << fC(200);
 	cout << " Creare il Contatto? [" << fC(30, 165, 100) << "Y" << fC(200) << "/" << fC(255, 90, 70) << "N" << fC(200) << "]";
 	char key = _getch();
-	
+	bool wait = true;
+		
 	// Risposta Affermativa.
 	if (key == 'y' || key == 'Y')
 	{
