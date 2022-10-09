@@ -233,7 +233,16 @@ void modifica(CONTATTO r[MAX_SIZE], int &contacts, int currentContact) {
 						
 					case 8: //mail
 						
-						getline (cin, rickyguala.email, '\n');	
+						do {
+							
+							getline (cin, rickyguala.email, '\n');
+							
+							if (!is_mail(rickyguala.email) != true) {
+						
+								break;
+							}
+						} while (true);
+							
 			
 						break;
 						
@@ -519,8 +528,24 @@ bool aggiungi(CONTATTO r[MAX_SIZE], int &contacts)
 			cout << fC(255);
 			cout << fields[i];
 			cout << fC(35, 165, 100);
-		
-			getline(cin, data, '\n');
+			
+			if (i != 7) {
+					
+				getline(cin, data, '\n');			
+			}
+			
+			//se il campo che si sta inserendo e` la mail effettua il controllo
+			if (i == 7) {
+				do {
+					
+					getline(cin, data, '\n');					
+					if (!is_mail(data) != true) {
+						
+						break;
+					}
+				} while (true);	
+			}
+			
 			
 			// Annullo.
 			if (data == "!q")
@@ -668,3 +693,70 @@ bool rimuovi(CONTATTO r[MAX_SIZE], int currentContact, int &contacts)
 	return true;
 }
 
+//controlla se la mail inserita e` davvero una mail
+bool is_mail (string mail) {
+	
+	int chiocciola, punto;
+	string mail2;
+	
+	//cerca una @ nella stringa
+	if (mail.find("@") != std::string::npos) {
+		
+	    chiocciola++;
+	}
+	//divide la stringa in due usando come divisore la @
+	splitstr (mail, "@", mail2);
+	
+	//cesca un . nella seconda parte della stringa
+	if (mail2.find(".") != std::string::npos) {
+		
+	    punto++;
+	}
+	
+	//se ci sono una @ ed un . (nella seconda parte della stringa) allora e` una mail
+	if (punto == 1 && chiocciola == 1) {
+		
+		return true;
+	} else {
+		
+		return false;
+	}
+}
+
+//divide la stringa dal delimitatore
+void splitstr(string str, string deli, string &string2) {
+
+    int start = 0;
+    int end = str.find(deli);
+    while (end != -1) {
+
+        start = end + deli.size();
+        end = str.find(deli, start);
+    }
+    string2 = str.substr(start, end - start);
+}
+
+bool is_num_mob (string num) {
+	
+	int si;
+	
+	//rimuove gli spazi dalla stringa
+	remove(num.begin(), num.end(), ' ');
+	
+	//controlla se c'e` un +  per verificare se e` stato inserito il prefisso
+	if (num.find("+") != std::string::npos) {
+
+	    si++;
+	}
+	
+	//no prefisso
+	if (num.length() != 10 && si == 0) {
+		
+		return false;
+	}
+	//con prefisso
+	if (si != 0 && num.length() <= 14 && num.length() >= 12) {
+		
+		return true;
+	} 
+}

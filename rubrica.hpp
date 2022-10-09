@@ -32,4 +32,7 @@ bool rimuovi(CONTATTO r[MAX_SIZE], int currentContact, int &contacts);
 void modifica(CONTATTO r[MAX_SIZE], int &contacts, int currentContacts);
 bool visualizza(CONTATTO r[MAX_SIZE], int &contacts);
 void filtra (string &nome, string &cognome);
+bool is_mail (string mail);
+void splitstr(string str, string deli, string &string2);
+bool is_num_mob (string num);
 
