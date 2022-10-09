@@ -157,8 +157,7 @@ bool isDataValid(string data)
 			
 	if (anno.size() != 4)
 		return false;
-		
-	/*
+	/*		
 	if (stoi(giorno) < 0 || stoi(giorno) > 31)
 		return false;
 		
@@ -291,6 +290,9 @@ void modifica(CONTATTO r[MAX_SIZE], int &contacts, int currentContact) {
 		
 				if (campoMod == 3)
 					cout << fC(200) << " La Data va Fornita nel Formato dd/mm/yyyy" << endl;
+					
+				if (campoMod == 4 || campoMod == 5)
+					cout << fC(200) << " il numero va inserito senza spazi, grazie :)" << endl;
 				
 				//indicatore campo obbligatorio
 				if (campoMod == 1 || campoMod == 2)
@@ -727,10 +729,10 @@ bool carica(CONTATTO r[MAX_SIZE], int &contacts) {
 			!is_num_fiss(t.numeroFisso) ||
 			!isCampoValid(t.residenza, false) ||
 			!isCampoValid(t.indirizzo, false) ||
-		//	!is_mail(t.email) ||
+			!is_mail(t.email) ||
 			!isCampoValid(t.note, false))
 		{
-			MessageBox(NULL, "ERRORE GREVISSIMO! UN DATO NON E' CORRETTO!!!", "Gaston", MB_OK | MB_ICONERROR);
+			MessageBox(NULL, "GREVISSIMO! UN DATO NON E' CORRETTO!!!", "Gaston", MB_OK | MB_ICONERROR);
 			exit(-104);
 		}
 		
@@ -826,7 +828,12 @@ void aggiungi(CONTATTO r[MAX_SIZE], int &contacts)
 			if (i == 2)
 			{
 				cout << fC(200) << " La Data va Fornita nel Formato dd/mm/yyyy" << endl;
-			}		
+			}	
+			
+			if (i == 3 || i == 4)
+			{
+				cout << fC(200) << " il numero av inserito senza spazi, grazie :)" << endl;
+			}	
 			
 			//indicatore campo obbligatorio
 			if (requiredField[i])
@@ -987,7 +994,7 @@ bool is_mail (string mail) {
 	if (mail.size() > 70)
 		return false;
 		
-	int chiocciola, punto;
+	int chiocciola = 0, punto = 0;
 	string mail2;
 	
 	//cerca una @ nella stringa
@@ -998,14 +1005,13 @@ bool is_mail (string mail) {
 	//divide la stringa in due usando come divisore la @
 	splitstr (mail, "@", mail2);
 	
-	//cesca un . nella seconda parte della stringa
-	if (mail2.find(".") != std::string::npos) {
+	if (mail.find(".") != std::string::npos) {
 		
 	    punto++;
 	}
-	
+
 	//se ci sono una @ ed un . (nella seconda parte della stringa) allora e` una mail
-	if (punto == 1 && chiocciola == 1) {
+	if (chiocciola == 1 && punto == 1) {
 		
 		return true;
 	} else {
