@@ -3,18 +3,34 @@
 #include "console+vts.hpp"
 #include "rubrica.hpp"
 
+// Rubrica.
 CONTATTO rubrica[MAX_SIZE];
+// Stato Rubrica.
+bool rubricaFiltrata[MAX_SIZE] = { true };
+// Filtri.
+string nome = "";
+string cognome = "";
 
-// Loop dell'applicazione.
+
+// Loop dell'Applicazione.
 int loop();
-// Mostra il titolo dell'applicazione.
+// Mostra il Titolo.
 void title();
-// Mostra il menù.
+// Mostra il Menù.
 void menu(string options[], bool optionsState[], int currentOption, int optionsLength);
-// Mostra la dashboard.
-void dashboard(bool mode, int currentContact, int &contacts);
-// TOOL TIP.
+// Mostra la Dashboard.
+void dashboard(bool mode, int currentContact, int &contacts, bool fullDraw);
+// Mostra il Tool Tip.
 void toolTip(int currentOption);
+void separatore(int sx, int sy, int length);
+void valutaColoreRiga(int i, int contacts, int currentContact);
+void completaRiga(string word, int maxLength, RGB color);
+void serveUnGap(int campo, int indiceUltimoCampo);
+RGB ottieniColoreRiga(int i, int contacts, int currentContact);
+void nextContatto(bool mode, int &currentContact, int contacts, bool rF[MAX_SIZE]);
+void previousContatto(bool mode, int &currentContact, int contacts, bool rF[MAX_SIZE]);
+void changeMode(bool &mode, string options[], bool optionsState[]);
+
 
 int main()
 {
@@ -49,23 +65,6 @@ int main()
 	return loop();
 }
 
-/*
-
-
-
-
-
-
-dashboard fix separatore contaitti corti poroca9iuds
-
-
-
-
-
-*/
-
-
-
 
 int loop()
 {
@@ -73,9 +72,7 @@ int loop()
 	bool doLoop = true;
 	// Lunghezza Menù.
 	int optionsLength = 18;
-	
-	string nome = "", cognome = "";
-	
+		
 	// Menù.
 	string options[] = {
 		"-------------------",
@@ -136,7 +133,7 @@ int loop()
 		return -1;
 	
 	// Disegno la Dashboard.
-	dashboard(mode, currentContact, contacts);
+	dashboard(mode, currentContact, contacts, true);
 	
 	// Loop Applicazione.
 	while (doLoop)
@@ -201,7 +198,7 @@ int loop()
 				// Reset.
 				system("cls");
 				// Disegno la dashboard.
-				dashboard(mode, currentContact, contacts);
+				dashboard(mode, currentContact, contacts, true);
 				break;
 				
 				/*
@@ -211,92 +208,38 @@ int loop()
 				// Comando "Su".
 			case 'A':
 			case 'a':
-				// In modalità semplice controllo se il prossomo elemento fa parte degli ultimi 8.
-				// Why? Evitare che la tabella della dashboard presenti meno di 8 contatti anche
-				// se i contatti sono più di 8. Sostanzialemente si anticipa il campo toloidale.
-				if (mode)
-				{
-					// Ci sono pochi contatti scorro nella tabella senza cambiarla.
-					if (contacts <= 8)
-					{
-						currentContact = currentContact - 1 >= 0 ? currentContact - 1 : contacts - 1;	
-					}
-					else
-					{
-						//currentContact = currentContact - 1 >= 0 ? currentContact - 1 : contacts - 8;
-						currentContact = currentContact - 1 >= 0 ? currentContact - 1 : contacts - 1;
-					}
-				}
-				else
-				{
-					currentContact = currentContact - 1 >= 0 ? currentContact - 1 : contacts - 1;
-				}
-				
-				dashboard(mode, currentContact, contacts);			
-
+				previousContatto(mode, currentContact, contacts, rubricaFiltrata);
+				dashboard(mode, currentContact, contacts, false);
 				break;
 				
 				// Comando "Giù".
 			case 'D':
 			case 'd':
-				// In modalità semplice controllo se il prossomo elemento fa parte degli ultimi 8.
-				// Why? Evitare che la tabella della dashboard presenti meno di 8 contatti anche
-				// se i contatti sono più di 8. Sostanzialemente si anticipa il campo toloidale.
-				if (mode)
-				{
-					// Ci sono pochi contatti scorro nella tabella senza cambiarla.
-					if (contacts <= 8)
-					{
-						currentContact = currentContact + 1 <= contacts - 1 ? currentContact + 1 : 0;
-					}
-					else
-					{
-						//currentContact = currentContact + 1 <= contacts - 8 ? currentContact + 1 : 0;
-						currentContact = currentContact + 1 <= contacts - 1 ? currentContact + 1 : 0;
-					}
-				}
-				else
-				{
-					currentContact = currentContact + 1 <= contacts - 1 ? currentContact + 1 : 0;
-				}
-				
-				dashboard(mode, currentContact, contacts);
+				nextContatto(mode, currentContact, contacts, rubricaFiltrata);
+				dashboard(mode, currentContact, contacts, false);
 				break;
 				
 				// Comando "In Cima".
 			case 'T':
 			case 't':
-				// Seleziono il primo contatto.
+				// Seleziono il Primo Contatto.
 				currentContact = 0;
-				dashboard(mode, currentContact, contacts);
+				dashboard(mode, currentContact, contacts, false);
 				break;
 				
 				// Comando "In Fondo".
 			case 'B':
 			case 'b':
-				// Selezione l'ultimo contatto.
+				// Seleziono l'Ultimo Contatto.
 				currentContact = contacts - 1;
-				dashboard(mode, currentContact, contacts);
+				dashboard(mode, currentContact, contacts, false);
 				break;
 				
 				// Comando "Dashboard"	
 			case 'H':
 			case 'h':
-				// Inverto la Modalità.
-				mode = !mode;
-				
-				// Dashboard "Semplice".
-				if (mode)
-					options[11] = "Dashboard: Semplice";
-				// Dashboard "Avanzata".
-				else
-					options[11] = "Dashboard: Avanzata";
-				
-				// Richiedono la modalità avanzata.
-				optionsState[2] = !mode;
-				optionsState[3] = !mode;
-
-				dashboard(mode, currentContact, contacts);
+				changeMode(mode, options, optionsState);
+				dashboard(mode, currentContact, contacts, false);
 				break;
 
 				/*
@@ -315,25 +258,23 @@ int loop()
 						// Comando "Aggiungi Contatto".
 					case 1:
 						aggiungi(rubrica, contacts);
-						dashboard(mode, currentContact, contacts);
 						break;
 						
 						// Comando "Rimuovi Contatto".
 					case 2:
 						rimuovi(rubrica, currentContact, contacts);
-						dashboard(mode, currentContact, contacts);
+						nome = "";
+						cognome = "";
 						break;
 						
 						// Comando "Modifica Contatto".
 					case 3:
-						modifica (rubrica, contacts, currentContact);
-						dashboard(mode, currentContact, contacts);
+						modifica(rubrica, contacts, currentContact);
 						break;
 						
 						// Comando "Filtra Contatto".
 					case 4:
-						
-						filtra (nome,  cognome);
+						filtra(nome, cognome, rubrica, rubricaFiltrata, currentContact,contacts);
 						break;
 						
 						/*
@@ -342,67 +283,39 @@ int loop()
 					
 						// Comando "Su".
 					case 6:
-						if (currentContact - 1 >= 0)
-							currentContact--;
-						else
-							currentContact = contacts - 1;
-						
-						dashboard(mode, currentContact, contacts);
+						previousContatto(mode, currentContact, contacts, rubricaFiltrata);
 						break;
 						
 						// Comando "Giù".
 					case 7:
-						if (currentContact + 1 <= contacts - 1)
-							currentContact++;
-						else
-							currentContact = 0;
-						
-						dashboard(mode, currentContact, contacts);
+						nextContatto(mode, currentContact, contacts, rubricaFiltrata);
 						break;
 						
 						// Comando "In Cima".
 					case 8:
 						currentContact = 0;
-						dashboard(mode, currentContact, contacts);
 						break;
 						
 						// Comando "In Fondo".
 					case 9:
 						currentContact = contacts - 1;
-						dashboard(mode, currentContact, contacts);
 						break;
 						
 						// Comando "Dashboard".
 					case 11:
-						// Inverto la Modalità.
-						mode = !mode;
-						
-						// Dashboard "Semplice".
-						if (mode)
-							options[11] = "Dashboard: Semplice";
-						// Dashboard "Avanzata".
-						else
-							options[11] = "Dashboard: Avanzata";
-						
-						// Richiedono la modalità avanzata.
-						optionsState[2] = !mode;
-						optionsState[3] = !mode;
-
-						dashboard(mode, currentContact, contacts);
+						changeMode(mode, options, optionsState);
 						break;
 						
 						// Comando "Ricarica".
 					case 13:
 						carica(rubrica, contacts);
-						dashboard(mode, currentContact, contacts);
+						nome = "";
+						cognome = "";
 						break;
 					
-					// Comando "Reset".
+						// Comando "Reset".
 					case 14:
-						// Reset.
-						system("cls");
-						// Disegno la dashboard.
-						dashboard(mode, currentContact, contacts);
+						system("cls");						
 						break;
 							
 						// Comando "Esci".
@@ -411,53 +324,20 @@ int loop()
 						break;
 						
 					default:
-						break;
+						break;			
 				}
 				
+				dashboard(mode, currentContact, contacts, (currentOption < 6 || currentOption > 9));
 				break;
 				
 			case 'W':
 			case 'w':
-				// Oltre il limite. Imposto al minimo.
-				if (currentOption - 1 < 0)
-					currentOption = optionsLength - 1;
-				// Opzione superiore.
-				else
-					currentOption--;
-	
-				// Seleziono il prossimo elemento abilitato.
-				while (!optionsState[currentOption])
-				{
-					// Oltre il limite. Imposto al minimo.
-					if (currentOption - 1 < 0)
-						currentOption = optionsLength - 1;
-					// Opzione superiore.
-					else
-						currentOption--;
-				}
-				
+				precedenteElementoAvanzato(currentOption, optionsLength, options);		
 				break;
 				
 			case 'S':
 			case 's':
-				// Oltre il limite. Imposto al massimo.
-				if (currentOption + 1 > optionsLength - 1)
-					currentOption = 0;
-				// Opzione inferiore.
-				else
-					currentOption++;
-	
-				// Seleziono il prossimo elemento abilitato.
-				while (!optionsState[currentOption])
-				{
-					// Oltre il limite. Imposto al massimo.
-					if (currentOption + 1 > optionsLength - 1)
-						currentOption = 0;
-					// Opzione inferiore.
-					else
-						currentOption++;
-				}
-				
+				prossimoElementoAvanzato(currentOption, optionsLength, options);
 				break;
 				
 			default:
@@ -483,6 +363,7 @@ void title()
 	cout << "    |_____||__,||___||_|  |___||_|_|" << endl;
 	cout << fC(255, 205, 70);
 	cout << endl << "    Versione 1.0.4" << endl;
+	
 	cout << "\x1b[0m";
 }
 
@@ -538,7 +419,7 @@ void menu(string options[], bool optionsState[], int currentOption, int optionsL
 	}
 }
 
-void dashboard(bool mode, int currentContact, int &contacts)
+void dashboard(bool mode, int currentContact, int &contacts, bool fullDraw)
 {
 	// Campi.
 	string advanced[] = {
@@ -554,7 +435,7 @@ void dashboard(bool mode, int currentContact, int &contacts)
 	};
 	
 	// Lunghezza Separatore.
-	int advancedMaxLength = 28;
+	int advancedMaxLength = 69;
 	
 	// Campi.
 	string simpled[] = {
@@ -615,6 +496,12 @@ void dashboard(bool mode, int currentContact, int &contacts)
 		}
 	}
 	
+	
+		
+	//
+	//	Dimensione Separatore.
+	//
+		
 	// Non ci sono contatti. Il separatore deve avere una dimensione fissa.
 	if (contacts == 0)
 	{
@@ -632,20 +519,10 @@ void dashboard(bool mode, int currentContact, int &contacts)
 		// Aggiungo Separatori.
 		advancedMaxLength += 12;
 		// Tolgo Dimensione Iniziale.
-		advancedMaxLength -= 28;	
+		advancedMaxLength -= 69;	
 	}
 	
-	// Separatore.
-	for (int i = 0; i < advancedMaxLength; i++)
-	{
-		setCursorPosition(WDSX + 24 + i, WDSY + 6);
-		
-		if (i == 0)
-			cout << "\x1b[0K";
-			
-		cout << fC(opzioneDisabilitata) << "-";
-	}
-		
+
 	//
 	//	Indicatore Contatti.
 	//
@@ -678,14 +555,7 @@ void dashboard(bool mode, int currentContact, int &contacts)
 		}
 	}
 	
-	// Separatore.
-	for (int i = 0; i < advancedMaxLength; i++)
-	{
-		setCursorPosition(WDSX + 24 + i, WDSY + 8);	
-		if (i == 0)
-			cout << "\x1b[0K";				
-		cout << fC(opzioneDisabilitata) << "-";
-	}
+
 		
 	//
 	//	Contenuto
@@ -710,91 +580,55 @@ void dashboard(bool mode, int currentContact, int &contacts)
 	// Ci sono Contatti.
 	else
 	{
-		// Modalità 'Semplice'.
+		//
+		//	Modalità 'Semplice'.
+		//
 		if (mode)
 		{
 			//
-			// Titolo.
+			//	Titolo Tabella.
 			//
 			
 			setCursorPosition(WDSX + 24, WDSY + 9);
-			cout << fC(240) << bC(10, 70, 125);
-				
+					
+			// Scrivo il Titolo I-Esimo.
 			for (int i = 0; i < 5; i++)
 			{
-				// Scrivo il titolo i-esimo.
-				cout << simpled[i];
-				
-				// Aggiungo Spazi per Completare la Riga.
-				for (int j = simpled[i].size(); j < simpledMaxLength[i]; j++)
-					cout << " ";
-					
-				// Altri Campi => Aggiungo il gap.
-				if (i != 4)
-					cout << "   ";
-				// Ultimo Campo.
-				else
-					cout << fC(12) << bC(12) << "#" << fC(240) << bC(12) << endl;
+				cout << fC(240) << bC(10, 70, 125) << simpled[i];
+				completaRiga(simpled[i], simpledMaxLength[i], RGB{ 10, 70, 125 });
+				serveUnGap(i, 4);
 			}
+			
+			
 			
 			//
 			// Tabella.	
 			//
 			
-			// Massimo contatti da visualizare.
+			// Massimo Numero di Contatti da Visualizare.
 			int max = contacts <= 8 ? 8 : currentContact + 8;
 			
+			// Scorro i Contatti da Visualizzare.
 			for (int i = contacts <= 8 ? 0 : currentContact; i < max; i++)
 			{
-				// Imposto la Posizione del Cursore.
-				// Pochi contatti.
+				// Pochi Contatti.
 				if (contacts <= 8)
-				{
 					setCursorPosition(WDSX + 24, WDSY + 10 + i);
-				}
 				else
-				{
 					setCursorPosition(WDSX + 24, WDSY + 10 + i - currentContact);
-				}
 				
-				// Controllo se il contatto corrente è selezionato.
-				if (i == currentContact)
-				{
-					// Colore elemento selezionato.
-					cout << bC(opzioneCorrente);
-				}
-				// Il contatto corrente non è selezionato.
-				else
-				{
-					// Pochi contatti.
-					if (contacts <= 8)
-					{
-						// Colore Riga Chiaro.
-						if ((i) % 2 == 0)
-							cout << bC(125);
-						// Colore Riga Scuro.
-						else
-							cout << bC(75);
-					}
-					else
-					{
-						// Colore Riga Chiaro.
-						if ((i - currentContact) % 2 == 0)
-							cout << bC(125);
-						// Colore Riga Scuro.
-						else
-							cout << bC(75);
-					}
-				}
-					
+				valutaColoreRiga(i, contacts, currentContact);
+				
+				// Campo.	
 				string word = "";
 					
-				// Esistono Contatti.
+				// Esistono Ancora Contatti.
 				if (i < contacts)
 				{
 					// Scorro i Campi dell'i-esimo Campo
 					for (int y = 0; y < 5; y++)
 					{		
+						// Campo del Contatto.
 						switch (y)
 						{
 							// Nome.
@@ -808,86 +642,50 @@ void dashboard(bool mode, int currentContact, int &contacts)
 							// E-Mail.
 							case 4: word = rubrica[i].email; break;
 						}
-							
-						// Campo non impostato.
+						
+						// Campo non Impostato.
 						if (word == "#IS_$_NULL!")
-						{
-							// Essendo il campo vuoto imposto word a una strina "nulla" in modo
-							// tale che la compensazione della riga sia corretta.
-							// #IS_$_NULL! sono più di 0 caratteri ma io non scrivi quindi il codice
-							// di completamento scriverebbe pochi caratteri.
 							word = "";
-						}
 						else
-						{
-							cout << word;
-						}
-							
-						// Aggiungo Spazi per Completare la Riga.
-						for (int j = word.size(); j < simpledMaxLength[y]; j++)
-							cout << " ";
-							
-						// Altri Campi.
-						if (y != 4)
-							cout << "   ";
-						// Ultimo Campo.
-						else
-							cout << fC(12) << bC(12) << "#" << fC(240) << bC(12) << endl;
+							cout << fC(240) << word;
+						
+						valutaColoreRiga(i, contacts, currentContact);
+						completaRiga(word, simpledMaxLength[y], ottieniColoreRiga(i, contacts, currentContact));
+						serveUnGap(y, 4);
 					}
 				}
-				// Non Esistono Contatti.
+				//
+				//	Sono Finiti i Contatti.
+				//
 				else
 				{
+					// Riempo la Tabella con Righe Vuote.
 					for (int y = 0; y < 5; y++)
 					{
-						// Pochi contatti.
-						if (contacts <= 8)
-						{
-							// Colore Riga Chiaro.
-							if ((i) % 2 == 0)
-								cout << fC(125);
-							// Colore Riga Scuro.
-							else
-								cout << fC(75);
-						}
-						else
-						{
-							// Colore Riga Chiaro.
-							if ((i - currentContact) % 2 == 0)
-								cout << fC(125);
-							// Colore Riga Scuro.
-							else
-								cout << fC(75);
-						}
-					
-						// Aggiungo Spazi per Completare la Riga.
-						for (int j = word.size(); j < simpledMaxLength[y]; j++)
-							cout << "#";
-							
-						// Altri Campi.
-						if (y != 4)
-							cout << "   ";
-						// Ultimo Campo.
-						else
-							cout << fC(12) << bC(12) << "#" << fC(240) << endl;
+						valutaColoreRiga(i, contacts, currentContact);
+						completaRiga(word, simpledMaxLength[y], ottieniColoreRiga(i, contacts, currentContact));
+						serveUnGap(y, 4);
 					}
 				}
 			}
 		}
-		// Modalità 'Avanzata'.
+		//
+		//	Modalità 'Avanzata'.
+		//
 		else
 		{
+			// Scorro Campi del Contatto Corrente.
 			for (int i = 0; i < 9; i++)
 			{
+				// Scrivo la Descrizione del Campo.
 				setCursorPosition(WDSX + 24, WDSY + 9 + i);
-				cout << fC(255);
-				cout << advanced[i] << " ";
-				cout << fC(100, 200, 75);
-				
-				cout << "\x1b[0K";
-				
+				cout << fC(255) << advanced[i] << " " << fC(100, 200, 75);		
+				// Cancello Linea.
+				cout << "\x1b[0K";		
+				// Valore I-Esimo Campo.
 				string word;
 				
+				// Selezione I-Esimo Campo.
 				switch (i)
 				{
 					// Nome.
@@ -895,7 +693,7 @@ void dashboard(bool mode, int currentContact, int &contacts)
 					// Cognome.
 					case 1: word = rubrica[currentContact].cognome; break;
 					// Data.
-					case 2: word = ""; break;
+					case 2: word = rubrica[currentContact].dataNascita; break;
 					// Numero Mobile.
 					case 3: word = rubrica[currentContact].numeroMobile; break;
 					// Numero Fisso.
@@ -910,80 +708,206 @@ void dashboard(bool mode, int currentContact, int &contacts)
 					case 8: word = rubrica[currentContact].note; break;
 				}
 				
-				// Campo non impostato.
+				// Campo non Impostato.
 				if (word == "#IS_$_NULL!")
-				{
-					cout << " ";
-				}
+					cout << " " << endl << fC(240);
 				else
-				{
-					cout << word;
-				}
-				
-				cout << endl;
+					cout << word << endl << fC(240);
 			}
-			
-			cout << fC(240);
 		}
 	}
-	
-	// Separatore.
-	for (int i = 0; i < advancedMaxLength; i++)
-	{
-		setCursorPosition(WDSX + 24 + i, WDSY + 18);
-		// Pulisco la linea.	
-		if (i == 0)
-			cout << "\x1b[0K";			
-		cout << fC(opzioneDisabilitata) << "-";
-	}
-	
-	setCursorPosition(WDSX + 24, WDSY + 19);
-	cout << fC(210, 150, 250) << bC(12) << "\x1b[3mPremi 'A' o 'D' per Scorrere. Premi 'H' per Cambiare Visualizzazione.\x1b[0m" << fC(240);
-	
-	// Separatore.
-	for (int i = 0; i < advancedMaxLength; i++)
-	{
-		setCursorPosition(WDSX + 24 + i, WDSY + 20);
-		// Pulisco la linea.
-		if (i == 0)
-			cout << "\x1b[0K";		
-		cout << fC(opzioneDisabilitata) << "-";
-	}
 		
-	// Separatore.
-	for (int i = 0; i < advancedMaxLength; i++)
+	// Mostro Filtri Applicati.
+	setCursorPosition(WDSX + 24, WDSY + 19);
+	cout << fC(200) << "Nome:    " << fC(210, 150, 250) << bC(12) << "\x1b[3m" << nome << "\x1b[0m" << fC(240);
+	setCursorPosition(WDSX + 24, WDSY + 20);
+	cout << fC(200) << "Cognome: " << fC(210, 150, 250) << bC(12) << "\x1b[3m" << cognome << "\x1b[0m" << fC(240);
+	
+	// Disegno Separatori.
+	if (fullDraw)
 	{
-		setCursorPosition(WDSX + 24 + i, WDSY + 22);
-		// Pulisco la linea.
-		if (i == 0)
-			cout << "\x1b[0K";		
-		cout << fC(opzioneDisabilitata) << "-";
+		separatore(WDSX + 24, WDSY + 6, advancedMaxLength);
+		separatore(WDSX + 24, WDSY + 8, advancedMaxLength);
+		separatore(WDSX + 24, WDSY + 18, advancedMaxLength);
+		separatore(WDSX + 24, WDSY + 21, advancedMaxLength);
+		separatore(WDSX + 24, WDSY + 23, advancedMaxLength);
 	}
 }
 
+// Fornisce una Spiegazione Semplice dell'Opzione Selezionata.
 void toolTip(int currentOption)
 {
 	string tips[] = {
 		"",
-		"Pemette l'aggiunta di un nuovo contatto alla rubrica",
-		"Permette la rimozione di un contatto esistente dalla rubrica",
-		"Permette la modifica di un contatto esistente della rubrica",
-		"Permette l'applicazione di filtri per la visualizzazione dei contatti dell rubrica",
+		"Permette l'Aggiunta di un Nuovo Contatto alla Rubrica",
+		"Permette la Rimozione di un Contatto Esistente dalla Rubrica",
+		"Permette la Modifica di un Contatto Esistente della Rubrica",
+		"Permette il Filtraggio dei Contatti Esistenti della Rubrica",
 		"",
-		"(A) Seleziona il contatto precedente",
-		"(D) Seleziona il contatto successivo",
-		"(T) Seleziona il primo contatto",
-		"(B) Seleziona il l'ultimo contatto",
+		"(A) Seleziona il Contatto Precedente",
+		"(D) Seleziona il Contatto Successivo",
+		"(T) Seleziona il Primo Contatto",
+		"(B) Seleziona il l'Ultimo Contatto",
 		"",
-		"Alterna la modalita' visiva della dashboard",
+		"(H) Cambia la Modalita' della Dashboard'",
 		"",
-		"Ricarica la rubrica dal sorgente",
-		"(5) Effettua un aggiornamento grafica TOTALE",
+		"Ricarica la Rubrica dal Database",
+		"(5) Effettua il Reset Grafico",
 		"",
-		"Termina l'applicazione ma non lo fare pls >_<",
+		"Termina l'Applicazione",
 	};
 	
-	setCursorPosition(WDSX + 24, WDSY + 21);
+	setCursorPosition(WDSX + 24, WDSY + 22);
 	cout << "\x1b[0K\x1b[1m" << fC(255, 190, 20) << tips[currentOption] << fC(249) << "\x1b[0m";
+}
+
+// Disegna un Separatore alle Coordinate 'x' e 'y' di Lunghezza 'lenght'.
+void separatore(int sx, int sy, int length)
+{
+	for (int i = 0; i < length; i++)
+	{
+		setCursorPosition(sx + i, sy);
+
+		// Pulisco la linea.
+		if (i == 0)
+			cout << "\x1b[0K";
+		
+		cout << fC(opzioneDisabilitata) << "-";
+	}
+}
+
+
+// Decide il Colore da Assegnare alla Riga I-Esima della Tabella.
+void valutaColoreRiga(int i, int contacts, int currentContact)
+{
+	// Ottengo Colore Riga.
+	RGB t = ottieniColoreRiga(i, contacts, currentContact);
+	// Imposto Colore Riga.
+	cout << fC(t) << bC(t);	
+}
+
+
+// Ottiene il Colore della Riga I-Esima.
+RGB ottieniColoreRiga(int i, int contacts, int currentContact)
+{
+	// Contatto Corrente.
+	if (i == currentContact)
+		return opzioneCorrente;
+	
+	// Pochi contatti.
+	if (contacts <= 8)
+	{
+		// Colore Riga Chiaro.
+		if ((i) % 2 == 0)
+			return RGB{ 125, 125, 125 };
+		// Colore Riga Scuro.
+		else
+			return RGB{ 75, 75, 75 };
+		}
+	// Molti Contatti.
+	else
+	{
+		// Colore Riga Chiaro.
+		if ((i - currentContact) % 2 == 0)
+			return RGB{ 125, 125, 125 };
+		// Colore Riga Scuro.
+		else
+			return RGB{ 75, 75, 75 };
+	}
+}
+
+
+// Aggiungi N Spazi Vuoti per Completare la Riga.
+void completaRiga(string word, int maxLength, RGB color)
+{
+	cout << bC(color) << fC(color);
+	
+	// Aggiungo Spazi per Completare la Riga.
+	for (int j = word.size(); j < maxLength; j++)
+		cout << "#";
+}
+
+
+// Agggiune un Gap alla Fine della Riga Corrente oppure il Reset Linea.
+void serveUnGap(int campo, int indiceUltimoCampo)
+{
+	// Altri Campi.
+	if (campo != indiceUltimoCampo)
+		cout << "   ";
+	// Ultimo Campo.
+	else
+		cout << fC(12) << bC(12) << "#" << fC(240) << endl;
+}
+
+
+// Seleziona il Prossimo Contatto della Rubrica.
+void nextContatto(bool mode, int &currentContact, int contacts, bool rF[MAX_SIZE])
+{
+	// No Filtri.
+	if (nome == "" && cognome == "")
+		currentContact = currentContact + 1 <= contacts - 1 ? currentContact + 1 : 0;
+	// Ci sono i Filtri.
+	else
+	{
+		// Salvo il currentContact Iniziale per Evitare Loop.		
+		int iniziale = currentContact;
+		
+		// Cerco il Prossimo Coso.
+		do
+		{
+			currentContact = currentContact + 1 <= contacts - 1 ? currentContact + 1 : 0;
+			
+			// Un solo Contatto Corrisponde ai Filtri.
+			if (iniziale == currentContact)
+				break;	
+		}
+		while (!rF[currentContact]);
+	}
+}
+
+
+// Seleziona il Precedente Contatto Della Rubrica.
+void previousContatto(bool mode, int &currentContact, int contacts, bool rF[MAX_SIZE])
+{
+	// No Filtri.
+	if (nome == "" && cognome == "")
+		currentContact = currentContact - 1 >= 0 ? currentContact - 1 : contacts - 1;
+	// Ci sono i Filtri.
+	else
+	{
+		// Salvo il currentContact Iniziale per Evitare Loop.		
+		int iniziale = currentContact;
+		
+		// Cerco il Prossimo Coso.
+		do
+		{
+			currentContact = currentContact - 1 >= 0 ? currentContact - 1 : contacts - 1;
+			
+			// Un solo Contatto Corrisponde ai Filtri.
+			if (iniziale == currentContact)
+				break;
+			
+		}
+		while (!rF[currentContact]);
+	}
+}
+
+
+// Cambia la Modalità della Dashboard.
+void changeMode(bool &mode, string options[], bool optionsState[])
+{
+	// Inverto la Modalità.
+	mode = !mode;
+				
+	// Dashboard "Semplice".
+	if (mode)
+		options[11] = "Dashboard: Semplice";
+	// Dashboard "Avanzata".
+	else
+		options[11] = "Dashboard: Avanzata";
+				
+	// Richiedono la modalità avanzata.
+	optionsState[2] = !mode;
+	optionsState[3] = !mode;
 }
 

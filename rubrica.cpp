@@ -1,8 +1,185 @@
 #include "console+vts.hpp"
 #include "rubrica.hpp"
 
-//verificare se il numero è un numero!!!
-//anche la mail
+void prossimoElemento(int &opzione, int massimo)
+{
+	if (opzione + 1 <= massimo - 1)
+		opzione++;
+	else
+		opzione = 0;
+}
+
+
+void precedenteElemento(int &opzione, int massimo)
+{
+	if (opzione - 1 >= 0)
+		opzione--;
+	else
+		opzione = massimo - 1;
+}
+
+
+void prossimoElementoAvanzato(int &opzione, int massimo, string options[])
+{
+	// Oltre il limite. Imposto al massimo.
+	if (opzione + 1 > massimo - 1)
+		opzione = 0;
+	// Opzione inferiore.
+	else
+		opzione++;
+	
+	// Seleziono il prossimo elemento abilitato.
+	while (options[opzione][0] == '-')
+	{
+		// Oltre il limite. Imposto al massimo.
+		if (opzione + 1 > massimo - 1)
+			opzione = 0;
+		// Opzione inferiore.
+		else
+			opzione++;
+	}				
+}
+
+
+void precedenteElementoAvanzato(int &opzione, int massimo, string options[])
+{
+	// Oltre il limite. Imposto al minimo.
+	if (opzione - 1 < 0)
+		opzione = massimo - 1;
+	// Opzione superiore.
+	else
+		opzione--;
+	
+	// Seleziono il prossimo elemento abilitato.
+	while (options[opzione][0] == '-')
+	{
+		// Oltre il limite. Imposto al minimo.
+		if (opzione - 1 < 0)
+			opzione = massimo - 1;
+		// Opzione superiore.
+		else
+			opzione--;
+	}
+}
+
+
+void coloreOpzione(int i, int currentOption, string options[])
+{
+	// Opzione Selezionata.
+	if (i == currentOption)
+	{			
+		// Opzione "Esci".
+		if (options[i][0] == 'T')
+			cout << fC(240) << bC(255, 0, 0);
+		// Separatore.
+		else if (options[i][0] == '-')
+			cout << fC(opzioneDisabilitata);
+		// Altre opzioni.
+		else
+			cout << fC(240) << bC(opzioneCorrente);
+		}
+	// Altro.
+	else
+	{	
+		// Opzione "Esci".
+		if (options[i][0] == 'T')
+			cout << fC(255, 0, 0);
+		// Separatore.
+		else if (options[i][0] == '-')
+			cout << fC(opzioneDisabilitata);
+		// Altre Opzioni.
+		else
+			cout << fC(opzioneAbilitata);
+	}
+}
+
+
+// Controlla se un campo generico è valido
+bool isCampoValid(string campo, bool obbligatorio)
+{	
+	// Inserisco Indicatore Campo non Inizializzato.
+	if (campo.size() == 0)
+		campo = "#IS_$_NULL!";
+			
+	// Controllo se il Campo Contiene il Carattere Separatore.
+	if (campo.find("§") != std::string::npos)
+		return false;
+
+	if (obbligatorio)
+		return campo.size() > 0 && campo.size() <= 70;
+		
+	return campo.size() <= 70;
+}
+
+
+// Controlla se il Formato della Data è Valido.
+bool isDataValid(string data)
+{
+	//campo vuoto.
+	if (data.size() == 0 || data == "#IS_$_NULL!" || data == "")
+		return true;
+	
+	// DD/MM/YYYY.	
+	if (data.size() != 10)
+		return false;
+	
+	string giorno = "";
+	string mese = "";
+	string anno = "";
+	
+	int c = 0;
+	
+	for (int i = 0; i < 10; i++)
+	{
+		if (c == 0)
+		{
+			if (data[i] == '/')
+				c++;
+			else
+				giorno += data[i];
+		}
+		else if (c == 1)
+		{
+			if (data[i] == '/')
+				c++;
+			else
+				mese += data[i];		
+		}
+		else if (c == 2)
+			anno += data[i];
+	}
+		
+	if (giorno.size() < 1 || giorno.size() > 2)
+		return false;
+		
+	if (mese.size() < 1 || mese.size() > 2)
+		return false;
+			
+	if (anno.size() != 4)
+		return false;
+		
+	/*
+	if (stoi(giorno) < 0 || stoi(giorno) > 31)
+		return false;
+		
+	if (stoi(mese, nullptr) < 0 || stoi(mese, nullptr) > 12)
+		return false;
+		
+	if (stoi(anno, nullptr) < 0 || stoi(anno, nullptr) > 9999)
+		return false;
+	
+	int giorniPerMese[] = {
+		31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
+	};
+	
+	if (stoi(giorno, nullptr) > giorniPerMese[stoi(mese, nullptr) - 1])
+		return false;
+	*/
+	
+	return true;
+}
+
+
 void modifica(CONTATTO r[MAX_SIZE], int &contacts, int currentContact) {
 	
 	system("cls");
@@ -13,7 +190,7 @@ void modifica(CONTATTO r[MAX_SIZE], int &contacts, int currentContact) {
 		"Nome           ",
 		"Cognome        ",
 		"Data di Nascita",
-		"Numero mobile  ",
+		"Numero Mobile  ",
 		"Numero Fisso   ",
 		"Residenza      ",
 		"Indirizzo      ",
@@ -24,7 +201,7 @@ void modifica(CONTATTO r[MAX_SIZE], int &contacts, int currentContact) {
 		"---------------",
 	};
 	
-	//elenco di modifica
+	// Elenco di Modifica.
 	string modifica[] = { 
 		"NOME: ",
 		"COGNOME: ",
@@ -36,57 +213,32 @@ void modifica(CONTATTO r[MAX_SIZE], int &contacts, int currentContact) {
 		"E-MAIL: ",
 		"NOTE: ",
 	};
-
-	// contatto in modifica
+	
+	// Contatto in Modifica.
 	CONTATTO rickyguala = r[currentContact];
-	// opzione selezionata
+	// Opzione Selezionata.
 	int campoMod = 1;
-	// lunghezza menu
+	// Lunghezza Menù.
 	int optionsLength= 13;
-	// loop menu
+	// Loop Menù.
 	bool doLoop = true;
+	
+	bool ok = false;
 	
 	do {
 			
-		cout << "\x1b[?25l";
-		
 		setCursorPosition(0, 0);
-		cout << endl;
-		cout << fC(210, 150, 250) << " Modifica di un Contatto" << endl;
-		cout << fC(100) << " -----------------------" << endl;
+		cout << "\x1b[?25l" << endl << fC(210, 150, 250) << " Modifica di un Contatto" << endl;
+		cout << fC(100) << " -----------------------" << endl << endl;
+		cout << "\x1b[3m" << fC(255, 0, 0) << " * " << fC(200) << "Indica un Campo Obbligatorio";
+		cout << "\x1b[0m" << endl;
+		cout << " Il carattere " << fC(255, 175, 90) << "§" << fC(200) << " non puo' essere usato!" << endl;
 		cout << endl;
 		
 		for (int i = 0; i < optionsLength; i++) {
 			
-			setCursorPosition(WDSX, WDSY + i + 2);
-
-			// Opzione Selezionata.
-			if (i == campoMod) {
-				
-				// Opzione "Esci".
-				if (options[i][0] == 'T')
-					cout << fC(240) << bC(255, 0, 0);
-				// Separatore.
-				else if (options[i][0] == '-')
-					cout << fC(opzioneDisabilitata);
-				// Altre opzioni.
-				else
-					cout << bC(opzioneCorrente);
-			}
-			// Altro.
-			else {
-				
-				// Opzione "Esci".
-				if (options[i][0] == 'T')
-					cout << fC(255, 0, 0);
-				// Separatore.
-				else if (options[i][0] == '-')
-					cout << fC(opzioneDisabilitata);
-				// Altre Opzioni.
-				else
-					cout << fC(opzioneAbilitata);
-			}
-
+			setCursorPosition(WDSX, WDSY + i + 5);
+			coloreOpzione(i, campoMod, options);
 			cout << options[i] << bC(12) << fC(35, 165, 100) << "   ";
 			
 			string valore;
@@ -96,7 +248,7 @@ void modifica(CONTATTO r[MAX_SIZE], int &contacts, int currentContact) {
 				
 				case 1: valore = rickyguala.nome; break;
 				case 2: valore = rickyguala.cognome; break;
-				// data
+				case 3: valore = rickyguala.dataNascita; break;
 				case 4: valore = rickyguala.numeroMobile; break;
 				case 5: valore = rickyguala.numeroFisso; break;
 				case 6: valore = rickyguala.residenza; break;
@@ -106,152 +258,130 @@ void modifica(CONTATTO r[MAX_SIZE], int &contacts, int currentContact) {
 			}
 			
 			//il campo è vuoto
-			if (valore=="#IS_$_NULL!") {
-				cout << "";	
-			}
-			else {
-				cout << valore;
-			}
-			
-			cout << bC(12)<< fC(240) << endl;
+			if (valore=="#IS_$_NULL!")
+				cout << "" << bC(12)<< fC(240) << endl;
+			else
+				cout << valore << bC(12)<< fC(240) << endl;
 		}
 		
 		// nascondo il cursore.
-		cout<<"\x1b[?25l";
-			
+		cout<<"\x1b[?25l";		
 		// prendo l'input
 		char action = _getch();
 
+		// controllo azione
 		switch (action) {
 			
 			case 'W':
-			case 'w':
-				
-				// Oltre il limite. Imposto al minimo.
-				if (campoMod - 1 < 0)
-					campoMod = campoMod - 1;
-				// Opzione superiore.
-				else
-					campoMod--;
-	
-				// Seleziono il prossimo elemento abilitato.
-				while (options[campoMod][0] == '-')
-				{
-					// Oltre il limite. Imposto al minimo.
-					if (campoMod - 1 < 0)
-						campoMod = optionsLength - 1;
-					// Opzione superiore.
-					else
-						campoMod--;
-				}
-				
+			case 'w':		
+				precedenteElementoAvanzato(campoMod, optionsLength, options);
 				break;
 				
 			case 'S':
 			case 's':
-				
-				// Oltre il limite. Imposto al massimo.
-				if (campoMod + 1 > optionsLength - 1)
-					campoMod = 0;
-				// Opzione inferiore.
-				else
-					campoMod++;
-	
-				// Seleziono il prossimo elemento abilitato.
-				while (options[campoMod][0] == '-')
-				{
-					// Oltre il limite. Imposto al massimo.
-					if (campoMod + 1 > optionsLength - 1)
-						campoMod = 0;
-					// Opzione inferiore.
-					else
-						campoMod++;
-				}
-				
+				prossimoElementoAvanzato(campoMod, optionsLength, options);
 				break;
 			
 			case 'X':
-			case 'x':
-				
+			case 'x':		
 				system("cls");
-				cout << "\x1b[?25h";
-					
-				cout << endl;
-				cout << fC(210, 150, 250) << " Modifica di un Contatto" << endl;
-				cout << fC(100) << " -----------------------" << endl;
-				cout << endl;
 				
-				//scrivo il campo che si sta modifcando
-				cout << " " << fC(240) << modifica[campoMod - 1] << fC(35, 165, 100);
+				cout << "\x1b[?25h" << endl << fC(210, 150, 250) << " Modifica di un Contatto" << endl;
+				cout << fC(100) << " -----------------------" << endl << endl;
+		
+				if (campoMod == 3)
+					cout << fC(200) << " La Data va Fornita nel Formato dd/mm/yyyy" << endl;
 				
+				//indicatore campo obbligatorio
+				if (campoMod == 1 || campoMod == 2)
+					cout << fC(255, 0, 0) << " * ";
+				else
+					cout << " ";
+
+				cout  << fC(240) << modifica[campoMod - 1] << fC(35, 165, 100);
+			
 				switch (campoMod) {
 			
-					case 1: //nome
+					case 1: //nome (campo obbligatorio)
+												
+						getline (cin, rickyguala.nome, '\n');
 						
-						do {
-						
-							getline (cin, rickyguala.nome, '\n');	
-						} while (rickyguala.nome.size() == 0);
-						//il campo è obbligatorio quindi si deve per forza scrivere qualcosa
+						if (!isCampoValid(rickyguala.nome, true))
+							rickyguala.nome = r[currentContact].nome;
+
 						break;
 					
-					case 2: //cognome
+					case 2: //cognome (campo obbligatorio)
+
+						getline (cin, rickyguala.cognome, '\n');	
 						
-						do {
+						if (!isCampoValid(rickyguala.cognome, true))
+							rickyguala.cognome = r[currentContact].cognome;
 						
-							getline (cin, rickyguala.cognome, '\n');	
-						} while (rickyguala.cognome.size() == 0);
 						break;
 						
 					case 3: //data
 						
+						getline (cin, rickyguala.dataNascita, '\n');
+
+						if (!isDataValid(rickyguala.dataNascita));
+							rickyguala.dataNascita = r[currentContact].dataNascita;
+							
 						break;
 					
-					case 4: //numoro mobile
-			
-						getline (cin, rickyguala.numeroMobile, '\n');	
-			
+					case 4: //numero mobile
+						
+						getline (cin, rickyguala.numeroMobile, '\n');
+						
+						if (!is_num_mob(rickyguala.numeroMobile))
+							rickyguala.numeroMobile = r[currentContact].numeroMobile;
+						
 						break;
 					
 					case 5: //numoro fisso
-			
-						getline (cin, rickyguala.numeroFisso, '\n');	
+
+						getline (cin, rickyguala.numeroFisso, '\n');
+						
+						if (!is_num_fiss(rickyguala.numeroFisso))
+							rickyguala.numeroFisso = r[currentContact].numeroFisso;
 			
 						break;
 					
 					case 6: //residenza
-					
-						getline (cin, rickyguala.residenza, '\n');	
+
+						getline (cin, rickyguala.residenza, '\n');
+						
+						if (!isCampoValid(rickyguala.residenza, false))
+							rickyguala.residenza = r[currentContact].residenza;
 			
 						break;
 						
 					case 7: //indirizzo
+
+						getline (cin, rickyguala.indirizzo, '\n');
 						
-						getline (cin, rickyguala.indirizzo, '\n');	
+						if (!isCampoValid(rickyguala.indirizzo, false))
+							rickyguala.indirizzo = r[currentContact].indirizzo;
 			
 						break;
 						
-					case 8: //mail
+					case 8: //e-mail
 						
-						do {
-							
-							getline (cin, rickyguala.email, '\n');
-							
-							if (!is_mail(rickyguala.email) != true) {
+				
+						getline (cin, rickyguala.email, '\n');
 						
-								break;
-							}
-						} while (true);
-							
+					 	if (!is_mail(rickyguala.email))
+					 		rickyguala.email = r[currentContact].email;
 			
 						break;
 						
 					case 9: //note
 					
-						do {
+						getline (cin, rickyguala.note, '\n');
 						
-							getline (cin, rickyguala.note, '\n');
-						} while (rickyguala.note.size() > 69);
+						
+						if (!isCampoValid(rickyguala.note, false))
+							rickyguala.note = r[currentContact].note;
 			
 						break;
 						
@@ -262,8 +392,9 @@ void modifica(CONTATTO r[MAX_SIZE], int &contacts, int currentContact) {
 						break; 
 				}
 				
-				//pulisco solo se campomod è 11 (esci)
+				//pulisco solo se 'campoMod' è 11 (esci)
 				if (campoMod != 11) {
+					
 					system("cls");
 				}
 
@@ -271,31 +402,38 @@ void modifica(CONTATTO r[MAX_SIZE], int &contacts, int currentContact) {
 		}
 		
 	} while (doLoop);
-
+	
+	cout << "\x1b[?25l";
+	
 	//verifica se il ocntatto è stato effettivamente modificato per chiedere la conferma se è ancora uguale non la chiede
 	if (!uguali (r[currentContact], rickyguala)) {
 	
 		setCursorPosition(0, 4);
 		cout << fC(200) << " Modificare il Contatto? [" << fC(30, 165, 100) << "Y" << fC(200) << "/" << fC(255, 90, 70) << "N" << fC(200) << "]";
+		
 		char bho = _getch();
+		
+		while (bho != 'Y' && bho != 'y' && bho != 'N' && bho != 'n')
+			bho = _getch();
 		
 		if (bho == 'Y' || bho == 'y') {
 			
 			r[currentContact] = rickyguala;
-			salva(r, contacts);
-			
-		}/* .nome */
+			salva(r, contacts);	
+		}
 	}
 	
 	cout << "\x1b[?25l";
 	system("cls");
 }
 
+//verifica se due contatti sono uguali
 bool uguali (CONTATTO r1, CONTATTO r2) {
 	
+	// controllo campo per campo se ci sono differenze
 	if (r1.nome != r2.nome) return false;
 	if (r1.cognome != r2.cognome) return false;
-	//if (r1.data != r2.data) return false;
+	if (r1.dataNascita != r2.dataNascita) return false;
 	if (r1.residenza != r2.residenza) return false;
 	if (r1.indirizzo != r2.indirizzo) return false;
 	if (r1.numeroFisso != r2.numeroFisso) return false;
@@ -307,46 +445,212 @@ bool uguali (CONTATTO r1, CONTATTO r2) {
 }
 
 
-/*
-disabilito se c'è mc' 1 o 0 contatti
-se c'è solo un contatto corrispondete non faccio fare movimenti (stack overflow)
-far vedere iu filtri attivi da qualche parte
-
-fare analisi di mercato per l'inserimento dei filtri dA QUALCHE PARTE
-
-1. SCALARE TUTTO NO
-2. (SI) ACCOPPARE LE DESCRIZIONI
-*/
-void filtra (string &nome, string &cognome) {
+// Confronta due contatti per nome e cognome e stabilisce quale viene prima.
+// True  => Contatto 1 viene prima.
+// False => Contatto 1 viene dopo.
+bool confronta (CONTATTO r1, CONTATTO r2) {
 	
-	string filtro2;
-	int filtro;
-	cout << "che filro si vuole applicare (nome, cognome, entrambi): " << endl;
-	getline (cin, filtro2, '\n');
+	string fullNameR1 = r1.nome + " " + r1.cognome;
+	string fullNameR2 = r2.nome + " " + r2.cognome;
 	
-	if (filtro2 == "nome") filtro = 1;
-	if (filtro2 == "cognome") filtro = 2;
-	if (filtro2 == "entrambi") filtro = 3;
-	
-	switch (filtro) {
-		
-		case 1: //filtra per nome
-			
-			getline (cin, nome, '\n');
-			break;
-		
-		case 2: //filtra per cognome
-			
-			getline (cin, cognome, '\n');
-			break;
-			
-		case 3: //filtra per enrambi
-		
-			getline (cin, nome, '\n');
-			getline (cin, cognome, '\n');
-			break;
-	}
+	return fullNameR1 < fullNameR2;
 }
+
+
+void filtra (string &nome, string &cognome, CONTATTO r[MAX_SIZE], bool rF[MAX_SIZE], int &currentContact, int contacts)
+{			
+	// Menù.
+	string options[] = {
+		"---------------",
+		"Nome           ",
+		"Cognome        ",
+		"Nome e Cognome ",
+		"---------------",
+		"Reset          ",
+		"---------------",
+		"TORNA ALLA HOME",
+		"---------------",
+	};
+	
+	// Lunghezza Menù.
+	int optionsLength = 9;	
+	// Opzione Selezionata.
+	int campoMod = 1;
+	// Variabile di Controllo.
+	bool ok = false;
+
+	system("cls");
+	cout << endl;
+	cout << fC(210, 150, 250) << " Filtri di un Contatto" << endl;
+	cout << fC(100) << " ---------------------"<< endl;
+	cout << endl;
+
+	while (!ok)
+	{
+		setCursorPosition(0, WDSY + 2);
+		cout << fC(200) << "\x1b[0K Nome:    " << fC(210, 150, 250) << bC(12) << "\x1b[3m" << nome << "\x1b[0m" << fC(240);
+		setCursorPosition(0, WDSY + 3);
+		cout << fC(200) << "\x1b[0K Cognome: " << fC(210, 150, 250) << bC(12) << "\x1b[3m" << cognome << "\x1b[0m" << fC(240);
+	
+		for (int i = 0; i < optionsLength; i++)
+		{
+			setCursorPosition(WDSX, WDSY + i + 5);
+			coloreOpzione(i, campoMod, options);
+			cout << options[i] << bC(12) << fC(35, 165, 100) << "   ";
+		}
+				
+		// Nascondo il Cursore.
+		cout<<"\x1b[?25l";			
+		// Prendo l'Input.
+		char action = _getch();
+
+		// Controllo Azione.
+		switch (action)
+		{
+			case 'W':
+			case 'w':		
+				precedenteElementoAvanzato(campoMod, optionsLength, options);
+				break;
+				
+			case 'S':
+			case 's':
+				prossimoElementoAvanzato(campoMod, optionsLength, options);
+				break;
+			
+			case 'X':
+			case 'x':		
+				system("cls");					
+				cout << "\x1b[?25h" << endl;
+				cout << fC(210, 150, 250) << " Filtri di un Contatto" << endl;
+				cout << fC(100) << " ---------------------" << endl;
+				cout << endl;
+
+				switch (campoMod)
+				{			
+					case 1: // Filtra per Nome.
+						cout << fC(240) << " NOME: " << fC(65, 130, 115);	
+						getline (cin, nome, '\n');
+						break;
+						
+					case 2: // Filtra per Cognome.
+					cout << fC(240) << " COGNOME: " << fC(65, 130, 115);		
+						getline (cin, cognome, '\n');
+						break;
+							
+					case 3: //filtra per Nome e Cognome.
+						cout << fC(240) << " NOME: " << fC(65, 130, 115);	
+						getline (cin, nome, '\n');
+						cout << fC(240) << " COGNOME: " << fC(65, 130, 115);	
+						getline (cin, cognome, '\n');
+						break;
+						
+					case 5:
+						nome = "";
+						cognome = "";
+						break;
+						
+					case 7:
+						ok = true;
+						break;	
+				}
+				
+				cout << fC(240);
+		
+				if (campoMod >= 1 && campoMod <= 3)
+				{
+					if (!applicaFiltri(campoMod, nome, cognome, r, rF, currentContact, contacts))
+					{
+						MessageBox(NULL, "Nessuno Contatto Corrispondente ai Filtri!", "Gaston", MB_OK | MB_ICONERROR);
+						nome = "";
+						cognome = "";				
+					}				
+				}
+			
+				break;
+		}
+	}
+	
+	system("cls");
+}
+
+
+bool applicaFiltri(int campoMod, string &nome, string &cognome, CONTATTO r[MAX_SIZE], bool rF[MAX_SIZE], int &currentContact, int contacts)
+{
+// Sono stati Impostati dei Filtri.
+				if (nome != "" && nome != "")
+				{
+					// Scorro i Contatti.
+					for (int i = 0; i < contacts; i++)
+					{
+						bool showIt = false;
+						
+						// Scorro Filtri.
+						switch (campoMod)
+						{		
+								// Filtro Nome.
+							case 1:
+								if (r[i].nome.find(nome) != string::npos)
+							    	showIt = true;				
+								break;
+								
+								// Filtro Cognome.
+							case 2:
+								if (r[i].cognome.find(cognome) != string::npos)
+							    	showIt = true;				
+								break;
+								
+								// Filtro Nome e Cognome.
+							case 3:
+								if (r[i].nome.find(nome) != string::npos && r[i].cognome.find(cognome) != string::npos)
+							    	showIt = true;
+								break;
+						}
+						
+						rF[i] = showIt;
+					}
+					
+					// Numero Totale Contatti Corrispondente ai Filtri.
+					int conto = 0;
+					// Primo Contatto che Rispetta i Filtri.
+					int primo = -1;
+					
+					// controllo se c'è roba che corrisponde ai filtri.
+					for (int i = 0; i < contacts; i++)
+					{
+						// Il Contatto I-Esimo Rispetta i Filtri.
+						if (rF[i])
+						{
+							if (primo < 0)
+								primo = i;
+								
+							// Aumento Contatti con i Filtri.
+							conto++;
+						}
+					}
+						
+					// Accetto i Filtri.
+					if (conto > 0)
+					{
+						// Imposto il Primo Contatto che ha i Filtri Giusti.
+						currentContact = primo;
+						//
+						return true;
+					}
+					else
+					{
+
+						return false;
+					}
+				}
+				
+				
+				else
+				{
+					return true;
+				}
+				
+}
+
 
 bool carica(CONTATTO r[MAX_SIZE], int &contacts) {
 	
@@ -387,8 +691,6 @@ bool carica(CONTATTO r[MAX_SIZE], int &contacts) {
 		
 		// contatto
 		CONTATTO t;
-		// data di nascita del contatto
-		DATA a;
 		
 		for (int i = 0; i < 9; i++)	{
 			
@@ -402,21 +704,9 @@ bool carica(CONTATTO r[MAX_SIZE], int &contacts) {
 				// Cognome
 				case 1: t.cognome = word; break;
 				// Data di nascita
-				case 2:
-					a.giorno =99;
-					a.mese=12;
-					a.anno=29;
-		
-					
-					t.dataNascita =a;
-					/*
-					
-					pietro fai la data
-					*/
-					
-					break;
+				case 2: t.dataNascita = word; break;
 				// Numero mobile
-				case 3: t.numeroMobile = word; break;				
+				case 3: t.numeroMobile = word; break;
 				// Numero Fisso.
 				case 4: t.numeroFisso = word; break;				
 				// Residenza.
@@ -430,11 +720,25 @@ bool carica(CONTATTO r[MAX_SIZE], int &contacts) {
 			}
 		}
 		
+		if (!isCampoValid(t.nome, true) ||
+			!isCampoValid(t.cognome, true) ||
+			!isDataValid(t.dataNascita) ||
+			!is_num_mob(t.numeroMobile) ||
+			!is_num_fiss(t.numeroFisso) ||
+			!isCampoValid(t.residenza, false) ||
+			!isCampoValid(t.indirizzo, false) ||
+		//	!is_mail(t.email) ||
+			!isCampoValid(t.note, false))
+		{
+			MessageBox(NULL, "ERRORE GREVISSIMO! UN DATO NON E' CORRETTO!!!", "Gaston", MB_OK | MB_ICONERROR);
+			exit(-104);
+		}
+		
 		r[contacts++] = t;
 	}
 	
 	f.close();
-	
+		
 	return true;
 }
 
@@ -449,15 +753,17 @@ bool salva(CONTATTO r[MAX_SIZE], int contacts) {
 	for (int i = 0; i < contacts; i++) {
 	
 		stringstream t;	
+		
 		t << r[i].nome;
 		t << "§" << r[i].cognome;
-		t << "§" << r[i].dataNascita.giorno << r[i].dataNascita.mese << r[i].dataNascita.anno;
+		t << "§" << r[i].dataNascita;
 		t << "§" << r[i].numeroMobile;
 		t << "§" << r[i].numeroFisso;
 		t << "§" << r[i].residenza;
 		t << "§" << r[i].indirizzo;
 		t << "§" << r[i].email;
 		t << "§" << r[i].note;
+		
 		// converto in stringa
 		f << t.str() << endl;
 	}
@@ -468,7 +774,8 @@ bool salva(CONTATTO r[MAX_SIZE], int contacts) {
 	return true;
 }
 
-bool aggiungi(CONTATTO r[MAX_SIZE], int &contacts)
+
+void aggiungi(CONTATTO r[MAX_SIZE], int &contacts)
 {
 	system("cls");
 	cout << "\x1b[?25h";
@@ -499,93 +806,91 @@ bool aggiungi(CONTATTO r[MAX_SIZE], int &contacts)
 	
 	CONTATTO t;
 
-	cout << endl;
-	cout << fC(210, 150, 250) << " Aggiunta di un Contatto" << endl;
-	cout << fC(100) << " -----------------------" << endl;
-	cout << endl;
-	cout << "\x1b[3m" << fC(255, 0, 0) << " * " << fC(200) << " Indica un Campo Obbligatorio";
-	cout << "\x1b[0m" << endl;
+	cout << endl << fC(210, 150, 250) << " Aggiunta di un Contatto" << endl;
+	cout << fC(100) << " -----------------------" << endl << endl;	
+	cout << "\x1b[3m" << fC(255, 0, 0) << " * " << fC(200) << "Indica un Campo Obbligatorio" << "\x1b[0m" << endl;
 	cout << " Digitare " << fC(140, 105, 175) << "!q" << fC(200) << " per Annullare" << endl;
-	cout << endl;
+	cout << " Il carattere " << fC(255, 175, 90) << "§" << fC(200) << " non puo' essere usato!" << endl << endl;
 	
 	for (int i = 0; i < 9; i++)
 	{
-		bool ok = false;
-		
+		// Variabile di controllo dell'input
+		bool ok = false;	
+		//campo di memorizzazione temporaneo
 		string data;
 		
-		while (!ok)
-		{
+		while (!ok) {
+			
 			cout << fC(255, 0, 0);
 		
-			// Indicatore campo obbligatorio.
+			if (i == 2)
+			{
+				cout << fC(200) << " La Data va Fornita nel Formato dd/mm/yyyy" << endl;
+			}		
+			
+			//indicatore campo obbligatorio
 			if (requiredField[i])
-				cout << " * ";	
+				cout << " * ";
 			// Indicatore Campo Facoltativo.
 			else
 				cout << " ";
+		
+			cout << fC(255) << fields[i] << fC(35, 165, 100);
+		
+			// Ottengo l'Input.
+			getline(cin, data, '\n');
 			
-			cout << fC(255);
-			cout << fields[i];
-			cout << fC(35, 165, 100);
-			
-			if (i != 7) {
+			// Controllo Input.
+			switch (i)
+			{
+				// Data di Nascita.
+				case 2:
+					if (isDataValid(data))
+						ok = true;
+					break;
+				
+				// Numero Mobile.
+				case 3:
+					if (is_num_mob(data))
+						ok = true;
+					break;
 					
-				getline(cin, data, '\n');			
-			}
-			
-			//se il campo che si sta inserendo e` la mail effettua il controllo
-			if (i == 7) {
-				do {
+				// Numero Fisso.
+				case 4:
+					if (is_num_fiss(data))
+						ok = true;
+					break;
 					
-					getline(cin, data, '\n');					
-					if (!is_mail(data) != true) {
-						
-						break;
-					}
-				} while (true);	
+				// E-Mail.
+				case 7:
+					if (is_mail(data))
+						ok = true;			
+					break;
+					
+				// Altri Campi.
+				default:
+					if (isCampoValid(data, requiredField[i]))
+						ok = true;
+					break;
 			}
-			
-			
+
 			// Annullo.
 			if (data == "!q")
 			{
 				system("cls");
 				cout << "\x1b[?25l";
-	
-				return false;	
-			}
-			
-			// Campo Obbligatorio.
-			if (requiredField[i])
-			{
-				// Campo Pieno.
-				if (data.size() != 0)
-				{
-					ok = true;
-				}
-			}
-			// Campo Facoltativo.
-			else
-			{
-				// Campo Vuoto.
-				if (data.size() == 0)
-				{		
-					data = "#IS_$_NULL!";
-				}
-				
-				ok = true;
+				return;
 			}
 		}
 		
-		switch (i)
-		{
+		switch (i)	{
+			
 			// Nome.
 			case 0: t.nome = data; break;
 			// Cognome.
 			case 1: t.cognome = data; break;
 			// Data di Nascita.
-			case 2: break;
+			case 2: t.dataNascita = data; break;
 			// Numero Mobile.
 			case 3: t.numeroMobile = data; break;
 			// Numero Fisso.
@@ -598,104 +903,90 @@ bool aggiungi(CONTATTO r[MAX_SIZE], int &contacts)
 			case 7: t.email = data; break;
 			// Note.
 			case 8: t.note = data; break;
+			
 		}
 	}
 	
-	cout << endl << fC(200);
+	cout << "\x1b[?25l" << endl << fC(200);
 	cout << " Creare il Contatto? [" << fC(30, 165, 100) << "Y" << fC(200) << "/" << fC(255, 90, 70) << "N" << fC(200) << "]";
-	char key = _getch();
-	bool wait = true;
-		
-	// Risposta Affermativa.
-	if (key == 'y' || key == 'Y')
-	{
-		// Aggiungo.
-		r[contacts++] = t;		
-	}
-	// Risposta Negativa.
-	else
-	{
-		system("cls");
-		cout << "\x1b[?25l";
 	
-		return false;
-	}
-
+	char key = _getch();
+	
+	//attendo tasto validoo
+	while (key != 'Y' && key != 'y' && key != 'N' && key != 'n')
+		key = _getch();
+		
 	system("cls");
 	cout << "\x1b[?25l";
 	
-	// Provo a salvare.
-	if (!salva(r, contacts))
-		return false;
-	
-	return true;
+	// Crea Contatto.
+	if (key == 'y' || key == 'Y')
+	{		
+		// Aggiungo.
+		r[contacts++] = t;	
+		
+		// Provo a Salvare.
+		if (!salva(r, contacts))
+		{
+			// Non Salva >:(.
+			MessageBox(NULL, "NON E' STATO POSSIBILE SALVARE LA RUBRICA!!!", "Gaston", MB_OK | MB_ICONERROR);
+		}
+	}
 }
 
-bool rimuovi(CONTATTO r[MAX_SIZE], int currentContact, int &contacts)
-{
+
+void rimuovi(CONTATTO r[MAX_SIZE], int &currentContact, int &contacts) {
+	
 	system("cls");
-	cout << "\x1b[?25l";
-	
-	cout << endl;
-	cout << fC(210, 150, 250) << " Rimozione di un Contatto" << endl;
-	cout << fC(100) << " ------------------------" << endl;
-	cout << endl;
-	
-	// Nome.
+	cout << "\x1b[?25l" << endl << fC(210, 150, 250) << " Rimozione di un Contatto" << endl;
+	cout << fC(100) << " ------------------------" << endl << endl;
 	cout << fC(35, 165, 100) << " NOME:           " << fC(240) << r[currentContact].nome << endl;
-	// Cognome.
 	cout << fC(35, 165, 100) << " COGNOME:        " << fC(240) << r[currentContact].cognome << endl;
-	// Numero Mobile.
 	cout << fC(35, 165, 100) << " NUMERO MOBILE:  " << fC(240) << r[currentContact].numeroMobile << endl;
-	// Numero Fisso.
 	cout << fC(35, 165, 100) << " NUMERO FISSO:   " << fC(240) << r[currentContact].numeroFisso << endl;
-	// E-Mail.
-	cout << fC(35, 165, 100) << " E-MAIL:         " << fC(240) << r[currentContact].email << endl << endl;
-	
-	cout << fC(200);
-	cout << " Eliminare il Contatto? [" << fC(30, 165, 100) << "Y" << fC(200) << "/" << fC(255, 90, 70) << "N" << fC(200) << "]";
+	cout << fC(35, 165, 100) << " E-MAIL:         " << fC(240) << r[currentContact].email << endl << endl;	
+	cout << fC(200) << " Eliminare il Contatto? [" << fC(30, 165, 100) << "Y" << fC(200) << "/" << fC(255, 90, 70) << "N" << fC(200) << "]";
+
 	char key = _getch();
 	
+	// Attendo tasto valido
+	while (key != 'Y' && key != 'y' && key != 'N' && key != 'n')
+		key = _getch();
+		
 	system("cls");
 	cout << "\x1b[?25l";
-		
-	// Risposta Affermativa.
+	
+	// Elimina!!!
 	if (key == 'y' || key == 'Y')
-	{
+	{		
 		// Shifto.
 		for (int i = currentContact; i < contacts - 1; i++)
 			r[i] = r[i + 1];
 		
-		// Ultimo contatto.
-		if (contacts == 1)
-		{
-			currentContact = 0;
-		}
-		else
-		{
-			// Cambio il Contatto Corrente.
-			currentContact--;
-		}
-		
+		// Cambio il contatto corrente.
+		currentContact--;	
 		// Diminuisco il Numero di Contatti.
 		contacts--;
+		
+		// Provo a Salvare.
+		if (!salva(r, contacts))
+		{
+			// Non Salva >:(.
+			MessageBox(NULL, "NON E' STATO POSSIBILE SALVARE LA RUBRICA!!!", "Gaston", MB_OK | MB_ICONERROR);
+		}
 	}
-	// Risposta Negativa.
-	else
-	{
-		return false;
-	}
-	
-	// Provo a salvare.
-	if (!salva(r, contacts))
-		return false;
-	
-	return true;
 }
 
-//controlla se la mail inserita e` davvero una mail
+
 bool is_mail (string mail) {
 	
+	//campo vuoto.
+	if (mail.size() == 0 || mail == "#IS_$_NULL!")
+		return true;
+		
+	if (mail.size() > 70)
+		return false;
+		
 	int chiocciola, punto;
 	string mail2;
 	
@@ -718,7 +1009,7 @@ bool is_mail (string mail) {
 		
 		return true;
 	} else {
-		
+
 		return false;
 	}
 }
@@ -737,26 +1028,78 @@ void splitstr(string str, string deli, string &string2) {
 }
 
 bool is_num_mob (string num) {
-	
-	int si;
-	
-	//rimuove gli spazi dalla stringa
-	remove(num.begin(), num.end(), ' ');
-	
-	//controlla se c'e` un +  per verificare se e` stato inserito il prefisso
-	if (num.find("+") != std::string::npos) {
 
-	    si++;
-	}
-	
-	//no prefisso
-	if (num.length() != 10 && si == 0) {
-		
-		return false;
-	}
-	//con prefisso
-	if (si != 0 && num.length() <= 14 && num.length() >= 12) {
-		
+	//campo vuoto.
+	if (num.size() == 0 || num == "#IS_$_NULL!")
 		return true;
-	} 
+		
+    int si;
+
+    //rimuove gli spazi dalla stringa
+    remove(num.begin(), num.end(), ' ');
+
+    if (only_num(num) == 1) {
+
+        //controlla se c'e un +  per verificare se e stato inserito il prefisso
+        if (num.find("+") != std::string::npos) {
+
+           si++;
+        }
+
+        //no prefisso
+        if (num.length() == 10 && si == 0 ) {
+
+            return true;
+        }
+        //con prefisso
+        if (si != 0 && num.length() <= 14 && num.length() >= 12) {
+
+            return true;
+        }
+    } else {
+
+        return false;
+    }
 }
+
+//controlla se la stringa e` composta solo da numeri, + o spazi
+bool only_num(string &str) {
+    //1 = no lettere 0 = lettere
+    return str.find_first_not_of("1234567890+ ") == string::npos;
+}
+
+bool is_num_fiss (string num) {
+
+	//campo vuoto.
+	if (num.size() == 0 || num == "#IS_$_NULL!")
+		return true;
+		
+    int si;
+
+    //rimuove gli spazi dalla stringa
+    remove(num.begin(), num.end(), ' ');
+
+    if (only_num(num) == 1) {
+
+        //controlla se c'e un +  per verificare se e stato inserito il prefisso
+        if (num.find("+") != std::string::npos) {
+
+           si++;
+        }
+
+        //no prefisso
+        if (num.length() == 9 && si == 0 ) {
+
+            return true;
+        }
+        //con prefisso
+        if (si != 0 && num.length() <= 13 && num.length() >= 11) {
+
+            return true;
+        }
+    } else {
+
+        return false;
+    }
+}
+
