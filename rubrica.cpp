@@ -157,23 +157,24 @@ bool isDataValid(string data)
 			
 	if (anno.size() != 4)
 		return false;
-	/*		
+		
+	
 	if (stoi(giorno) < 0 || stoi(giorno) > 31)
 		return false;
 		
-	if (stoi(mese, nullptr) < 0 || stoi(mese, nullptr) > 12)
+	if (stoi(mese) < 0 || stoi(mese) > 12)
 		return false;
 		
-	if (stoi(anno, nullptr) < 0 || stoi(anno, nullptr) > 9999)
+	if (stoi(anno) < 0 || stoi(anno) > 9999)
 		return false;
 	
 	int giorniPerMese[] = {
 		31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
 	};
 	
-	if (stoi(giorno, nullptr) > giorniPerMese[stoi(mese, nullptr) - 1])
+	if (stoi(giorno) > giorniPerMese[stoi(mese, nullptr) - 1])
 		return false;
-	*/
+	
 	
 	return true;
 }
