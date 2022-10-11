@@ -2,7 +2,8 @@
  <img width=200px height=200px src="gaston.png" alt="Project logo"></a>
 </p>
 
-<h1 align="center">Gaston</h1>
+<h1 align="center">Gaston </br> </h1>
+<h3 align="center">🎩 La TUA rubrica elegante  </h3>
 
 <div align="center">
 
@@ -21,13 +22,12 @@
 
 - [About](#🧐-about)
 - [Installing](#⬇️installing) 
-- [Usage](#🎈-usage-a-nameusagea)
 - [Built Using](#⛏️-built-using-a-name--builtusinga)
 - [Authors](#✍️-authors-a-name--authorsa)
 
 # 🧐 About
 
-Gaston è un gestionale elegante che permette di aggiungeree e rimuovere utenti ad una rubrica e successivamente modificarla e visualizzarla
+Gaston🎩 è un gestionale elegante che permette di aggiungeree e rimuovere utenti ad una rubrica e successivamente modificarla e visualizzarla
 
 </br>
 
@@ -45,13 +45,11 @@ edit or compile and run the file
 
 </br>
 
-# 🎈 Usage <a name="usage"></a>
-
 ## Prerequisites
 
 </br>
 
-To use the library file you need the [MSVC](https://docs.microsoft.com/it-it/cpp/build/reference/compiler-options?view=msvc-170) compiler or onother compiler for C++.
+Windows 10 1515 o superiore
 
 </br>
 
@@ -65,5 +63,5 @@ To use the library file you need the [MSVC](https://docs.microsoft.com/it-it/cpp
 
 # ✍️ Authors <a name = "authors"></a>
 
-- [@pietrogervasoni](https://github.com/pietrogervasoni) - Readme, Icon & Initial work
-- [@reallukee](https://github.com/reallukee) - Idea & Initial work
+- [@pietrogervasoni](https://github.com/pietrogervasoni) - Readme, Icona, filtri, modifica della rubrica, controlli su numeri e mail.
+- [@reallukee](https://github.com/reallukee) - interfaccia, aggiunta e rimozione di contatti dalla rubrica, filtri.
